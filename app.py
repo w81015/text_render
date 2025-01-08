@@ -43,7 +43,8 @@ def scrape():
         driver.quit()
         return jsonify({'results': results})
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': f"發生錯誤: {str(e)}"}), 500
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=8080)
+    # 測試運行在 Render 或雲端環境中需要的設定
+    app.run(host="0.0.0.0", port=8080, debug=True)
