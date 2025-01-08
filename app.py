@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
+import os  # 引入 os 模組
 
 app = Flask(__name__)
 
@@ -44,4 +45,5 @@ def scrape():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    port = int(os.environ.get("PORT", 5000))  # 取得環境變數 PORT，默認為 5000
+    app.run(host='0.0.0.0', port=port)  # 修改 host 和 port
