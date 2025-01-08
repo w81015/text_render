@@ -4,8 +4,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
+from flask_cors import CORS  # 允許跨域請求
 
 app = Flask(__name__)
+CORS(app)  # 允許跨域
 
 def setup_driver():
     """設置 Selenium 瀏覽器配置"""
@@ -13,17 +15,10 @@ def setup_driver():
     chrome_options.add_argument("--headless")  # 無頭模式
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-    chrome_options.add_argument("--disable-gpu")
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
     return driver
 
-@app.route('/', methods=['GET'])
-def home():
-    """首頁路由"""
-    return jsonify({'message': 'Flask app is running! Use /scrape for scraping.'})
-
-@app.route('/scrape', methods=['POST'])
+@app.route('/scrape', methods=['POST'])  # 確保這裡設置了 POST 方法
 def scrape():
     """接收請求並爬取 Google 搜尋結果"""
     data = request.json
@@ -44,13 +39,11 @@ def scrape():
             title = elem.find_element(By.TAG_NAME, "h3").text
             link = elem.get_attribute("href")
             results.append({"title": title, "link": link})
+
+        driver.quit()
+        return jsonify({'results': results})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-    finally:
-        driver.quit()  # 確保資源釋放
-
-    return jsonify({'results': results})
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8080)
-
