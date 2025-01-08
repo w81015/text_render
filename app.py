@@ -4,7 +4,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
-import os  # 引入 os 模組
 
 app = Flask(__name__)
 
@@ -14,8 +13,15 @@ def setup_driver():
     chrome_options.add_argument("--headless")  # 無頭模式
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+    chrome_options.add_argument("--disable-gpu")
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
     return driver
+
+@app.route('/', methods=['GET'])
+def home():
+    """首頁路由"""
+    return jsonify({'message': 'Flask app is running! Use /scrape for scraping.'})
 
 @app.route('/scrape', methods=['POST'])
 def scrape():
@@ -38,12 +44,13 @@ def scrape():
             title = elem.find_element(By.TAG_NAME, "h3").text
             link = elem.get_attribute("href")
             results.append({"title": title, "link": link})
-
-        driver.quit()
-        return jsonify({'results': results})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    finally:
+        driver.quit()  # 確保資源釋放
+
+    return jsonify({'results': results})
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))  # 取得環境變數 PORT，默認為 5000
-    app.run(host='0.0.0.0', port=port)  # 修改 host 和 port
+    app.run(host="0.0.0.0", port=8080)
+
